@@ -83,6 +83,37 @@ spark-submit \
 local:///app/examples/pi.py
 ```
 
+## With MiniO
+
+```bash
+
+spark-submit \
+--master k8s://https://fringe-division:6443 \
+--deploy-mode cluster \
+--name spark-pi \
+--conf spark.kubernetes.namespace=spark \
+--conf spark.kubernetes.authenticate.driver.serviceAccountName=spark \
+--conf spark.executor.instances=3 \
+--conf spark.kubernetes.driver.request.cores=2 \
+--conf spark.kubernetes.driver.request.memory=1G \
+--conf spark.kubernetes.executor.request.cores=2 \
+--conf spark.kubernetes.executor.request.memory=1G \
+--conf spark.kubernetes.container.image.pullSecrets=harbor-cfg \
+--conf spark.kubernetes.container.image.pullPolicy=Always \
+--conf spark.kubernetes.container.image=registry.karnwong.me/spark/app:latest \
+--conf spark.hadoop.fs.s3a.endpoint=$MINIO_ENDPOINT \
+--conf spark.hadoop.fs.s3a.path.style.access=true \
+--conf spark.hadoop.fs.s3a.impl=org.apache.hadoop.fs.s3a.S3AFileSystem \
+--conf spark.hadoop.fs.s3a.connection.ssl.enabled=true \
+--conf spark.kubernetes.driver.secretKeyRef.AWS_ACCESS_KEY_ID=minio:AWS_ACCESS_KEY_ID \
+--conf spark.kubernetes.driver.secretKeyRef.AWS_SECRET_ACCESS_KEY=minio:AWS_SECRET_ACCESS_KEY \
+--conf spark.kubernetes.executor.secretKeyRef.AWS_ACCESS_KEY_ID=minio:AWS_ACCESS_KEY_ID \
+--conf spark.kubernetes.executor.secretKeyRef.AWS_SECRET_ACCESS_KEY=minio:AWS_SECRET_ACCESS_KEY \
+--packages org.apache.hadoop:hadoop-aws:3.3.4 \
+--conf spark.driver.extraJavaOptions="-Divy.cache.dir=/tmp -Divy.home=/tmp" \
+local:///app/examples/pi.py
+```
+
 ## Useful commands
 
 ```bash
