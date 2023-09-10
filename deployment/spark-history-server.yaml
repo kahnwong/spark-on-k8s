@@ -1,0 +1,51 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spark-history-server
+  namespace: spark
+  labels:
+    app: spark-history-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spark-history-server
+  template:
+    metadata:
+      labels:
+        app: spark-history-server
+    spec:
+      containers:
+        - name: spark-history-server
+          image: registry.karnwong.me/spark/app:latest
+          ports:
+            - containerPort: 18080
+              protocol: TCP
+          command:
+            - /opt/spark/bin/spark-class
+            - -Dspark.history.fs.logDirectory=s3a://spark-logs/runs
+            - -Dspark.hadoop.fs.s3a.endpoint=http://minio.default.svc.cluster.local:9000
+            - -Dspark.hadoop.fs.s3a.impl=org.apache.hadoop.fs.s3a.S3AFileSystem
+            - -Dspark.hadoop.fs.s3a.path.style.access=true
+            - -Dspark.hadoop.fs.s3a.impl=org.apache.hadoop.fs.s3a.S3AFileSystem
+            - -Dspark.hadoop.fs.s3a.connection.ssl.enabled=true
+            - org.apache.spark.deploy.history.HistoryServer
+          envFrom:
+            - secretRef:
+                name: minio
+          resources:
+            limits:
+              cpu: "2"
+              memory: 2G
+            requests:
+              cpu: "1"
+              memory: 1G
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 18080
+              scheme: HTTP
+          imagePullPolicy: Always
+      imagePullSecrets:
+        - name: harbor-cfg

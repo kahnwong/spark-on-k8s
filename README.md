@@ -138,6 +138,43 @@ spark-submit \
 local:///app/examples/pi.py
 ```
 
+## Spark history server
+
+If encounter `java.lang.IllegalArgumentException: path must be absolute path` or `java.io.FileNotFoundException: No such file or directory`, this is MiniO, you'll need to add dummy file to the path you supply for `spark.eventLog.dir`.
+
+### Run task
+
+```bash
+spark-submit \
+--master k8s://https://fringe-division:6443 \
+--deploy-mode cluster \
+--name spark-pi \
+--conf spark.kubernetes.namespace=spark \
+--conf spark.kubernetes.authenticate.driver.serviceAccountName=spark \
+--conf spark.executor.instances=2 \
+--conf spark.kubernetes.container.image.pullSecrets=harbor-cfg \
+--conf spark.kubernetes.container.image.pullPolicy=Always \
+--conf spark.kubernetes.container.image=registry.karnwong.me/spark/app:latest \
+--conf spark.hadoop.fs.s3a.endpoint=http://minio.default.svc.cluster.local:9000 \
+--conf spark.hadoop.fs.s3a.path.style.access=true \
+--conf spark.hadoop.fs.s3a.impl=org.apache.hadoop.fs.s3a.S3AFileSystem \
+--conf spark.hadoop.fs.s3a.connection.ssl.enabled=true \
+--conf spark.eventLog.enabled=true \
+--conf spark.eventLog.dir=s3a://spark-logs/runs \
+--conf spark.kubernetes.driver.secretKeyRef.AWS_ACCESS_KEY_ID=minio:AWS_ACCESS_KEY_ID \
+--conf spark.kubernetes.driver.secretKeyRef.AWS_SECRET_ACCESS_KEY=minio:AWS_SECRET_ACCESS_KEY \
+--conf spark.kubernetes.executor.secretKeyRef.AWS_ACCESS_KEY_ID=minio:AWS_ACCESS_KEY_ID \
+--conf spark.kubernetes.executor.secretKeyRef.AWS_SECRET_ACCESS_KEY=minio:AWS_SECRET_ACCESS_KEY \
+local:///app/examples/pi.py
+
+```
+
+### Run Spark History Server
+
+```bash
+kubectl apply -f deployment/spark-history-server.yaml
+```
+
 ## Benchmark
 
 ### Setup
