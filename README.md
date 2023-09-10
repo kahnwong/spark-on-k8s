@@ -123,15 +123,11 @@ spark-submit \
 --name spark-pi \
 --conf spark.kubernetes.namespace=spark \
 --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark \
---conf spark.executor.instances=3 \
---conf spark.kubernetes.driver.request.cores=2 \
---conf spark.kubernetes.driver.request.memory=1G \
---conf spark.kubernetes.executor.request.cores=2 \
---conf spark.kubernetes.executor.request.memory=1G \
+--conf spark.executor.instances=4 \
 --conf spark.kubernetes.container.image.pullSecrets=harbor-cfg \
 --conf spark.kubernetes.container.image.pullPolicy=Always \
 --conf spark.kubernetes.container.image=registry.karnwong.me/spark/app:latest \
---conf spark.hadoop.fs.s3a.endpoint=https://storage.karnwong.me \
+--conf spark.hadoop.fs.s3a.endpoint=http://minio.default.svc.cluster.local:9000 \
 --conf spark.hadoop.fs.s3a.path.style.access=true \
 --conf spark.hadoop.fs.s3a.impl=org.apache.hadoop.fs.s3a.S3AFileSystem \
 --conf spark.hadoop.fs.s3a.connection.ssl.enabled=true \
@@ -142,6 +138,20 @@ spark-submit \
 local:///app/examples/pi.py
 ```
 
+## Benchmark
+
+### Setup
+
+- simple groupby against 73GB data
+- default cpu/ram is 1cpu/1GB per executor
+
+### Results
+
+- 1 executor: runtime 2m39s
+- 2 executors: 1.29s --> 2x performance
+- 4 executors: runtime 1m27s --> no visible gain post 2 executors
+- 6 executors: runtime 1m27s --> no visible gain post 2 executors
+
 ## Useful commands
 
 ```bash
@@ -149,6 +159,10 @@ kubectl create secret generic my-secret --from-literal=key1=value1 --from-litera
 
 kubectl create secret docker-registry regcred --docker-server=<your-registry-server> --docker-username=<your-name> --docker-password=<your-pword> --docker-email=<your-email>
 ```
+
+## Useful resources
+
+- large parquet files: <https://github.com/OvertureMaps/data>
 
 ## TODO
 
