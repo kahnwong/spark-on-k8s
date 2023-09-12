@@ -1,4 +1,4 @@
-# spark-on-k8s-playground
+# spark-on-k8s
 
 Reference: <https://spark.apache.org/docs/latest/running-on-kubernetes.html>
 
